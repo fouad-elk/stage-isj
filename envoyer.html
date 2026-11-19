@@ -24,7 +24,7 @@
 <main>
   <div class="card">
     <h1>Envoyer le lien d'évaluation</h1>
-    <p class="sub">Le mail est prêt. Touchez « Ouvrir dans ma messagerie », vérifiez l'expéditeur, puis envoyez.</p>
+    <p class="sub">Votre messagerie s'ouvre automatiquement. Si rien ne s'ouvre, touchez « Ouvrir dans ma messagerie ».</p>
     <span class="f">À</span><div class="v" id="to"></div>
     <span class="f">Objet</span><div class="v" id="subj"></div>
     <span class="f">Message</span><div class="v" id="body"></div>
@@ -45,6 +45,8 @@ document.getElementById("subj").textContent = subj;
 document.getElementById("body").textContent = body;
 const mailto = "mailto:" + encodeURIComponent(to).replace(/%40/g, "@") + "?subject=" + encodeURIComponent(subj) + "&body=" + encodeURIComponent(body);
 document.getElementById("open").href = mailto;
+/* Ouverture automatique de la messagerie dès l'arrivée sur la page (la page reste en secours si le téléphone la bloque). */
+if (to || subj) setTimeout(() => { location.href = mailto; }, 150);
 const msg = t => { document.getElementById("msg").textContent = t; };
 async function copy(t, ok){
   try { await navigator.clipboard.writeText(t); msg(ok); }
