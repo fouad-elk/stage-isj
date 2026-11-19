@@ -32,6 +32,7 @@
   input:focus,textarea:focus{outline:2px solid var(--brand-2);outline-offset:1px;border-color:var(--brand-2)}
   textarea{min-height:90px;resize:vertical}
   .locked{background:#eef3f8;font-weight:600}
+  .periode{padding:10px 12px;border:1px dashed #c5ced8;border-radius:8px;background:#f7f9fb;font-weight:600;color:var(--logo-grey)}
   .stages{display:flex;gap:8px;flex-wrap:wrap}
   .pill input{position:absolute;opacity:0;pointer-events:none}
   .pill span{display:inline-block;padding:9px 14px;border:1px solid #c5ced8;border-radius:999px;cursor:pointer;background:#fff;font-size:14px}
@@ -115,12 +116,15 @@
           <input type="text" id="maitre" name="maitre" required>
         </div>
         <div>
-          <label class="f" for="debut">Début du stage</label>
-          <input type="date" id="debut" name="debut">
+          <span class="f" style="display:block;font-weight:600;font-size:14px;margin-bottom:6px">Classe</span>
+          <div class="stages" role="radiogroup" aria-label="Classe">
+            <label class="pill"><input type="radio" name="classe" value="5VENDEUR"><span>5e vente</span></label>
+            <label class="pill"><input type="radio" name="classe" value="6VENDEUR"><span>6e vente</span></label>
+          </div>
         </div>
         <div>
-          <label class="f" for="fin">Fin du stage</label>
-          <input type="date" id="fin" name="fin">
+          <span class="f" style="display:block;font-weight:600;font-size:14px;margin-bottom:6px">Période du stage</span>
+          <div id="periode" class="periode">—</div>
         </div>
       </div>
     </section>
@@ -182,6 +186,11 @@
    ===================================================================== */
 const DESTINATAIRE = "fouad.elkadouri140@gmail.com";
 const ECOLE = "Institut Saint-Joseph Trois-Ponts";
+/* Périodes de stage 2026-2027 (à mettre à jour chaque année) */
+const PERIODES = {
+  "5VENDEUR": {"1":["2026-11-30","2026-12-11"], "2":["2027-01-11","2027-01-22"], "3":["2027-03-08","2027-03-19"]},
+  "6VENDEUR": {"1":["2026-11-16","2026-11-27"], "2":["2027-02-01","2027-02-11"], "3":["2027-03-22","2027-04-02"]}
+};
 
 const BAREME = [
   ["4","Très bien"],["3","Bien, rien à signaler"],["2","Laisse parfois à désirer"],
@@ -237,9 +246,17 @@ const params = new URLSearchParams(location.search);
 })();
 
 /* ---------- pré-remplissage par lien ---------- */
-const pEleve = params.get("eleve"), pStage = params.get("stage"), pClasse = params.get("classe") || "";
+const pEleve = params.get("eleve"), pStage = params.get("stage"), pClasse = params.get("classe") || "", pMag = params.get("magasin");
 if (pEleve) { const e = $("eleve"); e.value = pEleve; e.readOnly = true; e.classList.add("locked"); }
 if (pStage && /^[123]$/.test(pStage)) document.querySelector(`input[name=stage][value="${pStage}"]`).checked = true;
+if (PERIODES[pClasse]) document.querySelector(`input[name=classe][value="${pClasse}"]`).checked = true;
+if (pMag) $("magasin").value = pMag;
+const val = n => (document.querySelector(`input[name=${n}]:checked`) || {}).value || "";
+const fr = d => d ? d.split("-").reverse().join("/") : "";
+function periode(){ const p = (PERIODES[val("classe")] || {})[val("stage")]; return p ? {debut:p[0], fin:p[1]} : {debut:"", fin:""}; }
+function showPeriode(){ const p = periode(); $("periode").textContent = p.debut ? `du ${fr(p.debut)} au ${fr(p.fin)}` : "—"; }
+document.addEventListener("change", e => { if (e.target.name === "stage" || e.target.name === "classe") showPeriode(); });
+showPeriode();
 
 /* ---------- progression ---------- */
 function progress(){
@@ -266,15 +283,16 @@ function collect(){
   const stageEl = document.querySelector("input[name=stage]:checked");
   const d = {
     v:1,
-    eleve:$("eleve").value.trim(), classe:pClasse, stage:stageEl?stageEl.value:"",
+    eleve:$("eleve").value.trim(), classe:val("classe"), stage:stageEl?stageEl.value:"",
     magasin:$("magasin").value.trim(), maitre:$("maitre").value.trim(),
-    debut:$("debut").value, fin:$("fin").value,
+    debut:periode().debut, fin:periode().fin,
     notes, forts:$("forts").value.trim(), ameliorer:$("ameliorer").value.trim(), avis:$("avis").value.trim(),
     envoye:new Date().toISOString()
   };
   const errs = [];
   if (!d.eleve) errs.push("le nom de l'élève");
   if (!d.stage) errs.push("le numéro du stage");
+  if (!d.classe) errs.push("la classe");
   if (!d.magasin) errs.push("le magasin / l'entreprise");
   if (!d.maitre) errs.push("le nom du maître de stage");
   if (missing.length) errs.push(`${missing.length} critère(s) non coté(s), en rouge ci-dessous`);
@@ -285,7 +303,7 @@ function collect(){
 function asText(d){
   const lab = Object.fromEntries(BAREME);
   let t = `ÉVALUATION DE STAGE – ${ECOLE}\n\nÉlève : ${d.eleve}${d.classe?" ("+d.classe+")":""}\nStage n° : ${d.stage}${d.stage==="3"?" (final)":" (intermédiaire)"}\n` +
-          `Magasin : ${d.magasin}\nMaître de stage : ${d.maitre}\nPériode : ${d.debut||"?"} au ${d.fin||"?"}\n`;
+          `Magasin : ${d.magasin}\nMaître de stage : ${d.maitre}\nPériode : ${fr(d.debut)||"?"} au ${fr(d.fin)||"?"}\n`;
   BLOCS.forEach(b => {
     t += `\n${b.t.replace(/^\d+\.\s*/,"").toUpperCase()}\n`;
     b.c.forEach((c,i) => { const v = d.notes[b.k][i]; t += `- ${c} : ${v} (${lab[v]||""})\n`; });
@@ -314,7 +332,7 @@ $("sendBtn").addEventListener("click", async () => {
   const body = {
     _subject: subjectOf(d), _template: "box", _captcha: "false",
     "Élève": d.eleve, "Classe": d.classe || "-", "Stage n°": d.stage,
-    "Magasin": d.magasin, "Maître de stage": d.maitre, "Période": `${d.debut||"?"} → ${d.fin||"?"}`,
+    "Magasin": d.magasin, "Maître de stage": d.maitre, "Période": `${fr(d.debut)||"?"} → ${fr(d.fin)||"?"}`,
   };
   BLOCS.forEach(b => b.c.forEach((c,i) => { const v = d.notes[b.k][i]; body[`${b.k}${i+1} ${c}`] = `${v} – ${lab[v]}`; }));
   body["Points forts"] = d.forts || "-"; body["Points à améliorer"] = d.ameliorer || "-"; body["Avis général"] = d.avis || "-";
@@ -356,11 +374,11 @@ if (params.has("prof")) {
     const raw = $("profList").value; try { localStorage.setItem("evalstage-eleves", raw); } catch {}
     const base = location.origin + location.pathname;
     const rows = raw.split(/\r?\n/).map(l => l.trim()).filter(Boolean).map(l => {
-      const [a,b] = l.includes(";") ? l.split(";") : ["", l];
-      return {classe:a.trim(), eleve:(b||"").trim()};
+      const parts = l.includes(";") ? l.split(";") : ["", l];
+      return {classe:(parts[0]||"").trim(), eleve:(parts[1]||"").trim(), magasin:(parts[2]||"").trim()};
     }).filter(r => r.eleve);
     if (!rows.length) { $("profOut").innerHTML = '<p class="msg err">Aucun élève reconnu.</p>'; return; }
-    const link = (r,s) => base + "?" + new URLSearchParams({eleve:r.eleve, classe:r.classe, stage:s}).toString();
+    const link = (r,s) => base + "?" + new URLSearchParams(Object.assign({eleve:r.eleve, classe:r.classe, stage:s}, r.magasin ? {magasin:r.magasin} : {})).toString();
     $("profOut").innerHTML = `<table class="links"><thead><tr><th>Élève</th><th>Liens à envoyer</th></tr></thead><tbody>` +
       rows.map(r => `<tr><td><b>${esc(r.eleve)}</b><br><small>${esc(r.classe)}</small></td><td>` +
         ["1","2","3"].map(s => `<button type="button" class="secondary" data-l="${esc(link(r,s))}">Copier lien stage ${s}</button>`).join("") +
