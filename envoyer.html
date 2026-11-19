@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Envoyer le lien d'évaluation – Institut Saint-Joseph Trois-Ponts</title>
+<style>
+  body{margin:0;background:#f4f6f9;color:#1d2733;font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif}
+  main{max-width:640px;margin:0 auto;padding:20px 16px 40px}
+  .card{background:#fff;border:1px solid #dde3ea;border-top:3px solid #2dc314;border-radius:12px;padding:18px}
+  h1{font-size:20px;margin:0 0 6px;color:#4d4d4d}
+  p.sub{margin:0 0 16px;color:#5b6775;font-size:14px}
+  .f{display:block;font-weight:600;font-size:13px;margin:12px 0 4px;color:#5b6775}
+  .v{background:#f7f9fb;border:1px solid #dde3ea;border-radius:8px;padding:10px 12px;white-space:pre-wrap;word-break:break-word;font-size:14px}
+  .btns{display:flex;flex-direction:column;gap:10px;margin-top:18px}
+  a.btn,button{display:block;text-align:center;font:inherit;font-weight:700;border-radius:10px;padding:14px 16px;border:0;cursor:pointer;text-decoration:none}
+  .primary{background:#1a7f0c;color:#fff}
+  .secondary{background:#e8eef5;color:#1a7f0c}
+  .ok{color:#1e7b46;font-size:14px;text-align:center;min-height:1.4em}
+</style>
+</head>
+<body>
+<main>
+  <div class="card">
+    <h1>Envoyer le lien d'évaluation</h1>
+    <p class="sub">Le mail est prêt. Touchez « Ouvrir dans ma messagerie », vérifiez l'expéditeur, puis envoyez.</p>
+    <span class="f">À</span><div class="v" id="to"></div>
+    <span class="f">Objet</span><div class="v" id="subj"></div>
+    <span class="f">Message</span><div class="v" id="body"></div>
+    <div class="btns">
+      <a class="btn primary" id="open" href="#">Ouvrir dans ma messagerie</a>
+      <button type="button" class="secondary" id="copy">Copier le message</button>
+      <button type="button" class="secondary" id="copyTo">Copier l'adresse</button>
+      <div class="ok" id="msg" role="status"></div>
+    </div>
+  </div>
+</main>
+<script>
+/* Les données arrivent dans le fragment (#...) de l'adresse : elles ne sont jamais envoyées à un serveur. */
+const p = new URLSearchParams(location.hash.slice(1));
+const to = p.get("to") || "", subj = p.get("subject") || "", body = p.get("body") || "";
+document.getElementById("to").textContent = to || "(aucune adresse : à compléter dans la messagerie)";
+document.getElementById("subj").textContent = subj;
+document.getElementById("body").textContent = body;
+const mailto = "mailto:" + encodeURIComponent(to).replace(/%40/g, "@") + "?subject=" + encodeURIComponent(subj) + "&body=" + encodeURIComponent(body);
+document.getElementById("open").href = mailto;
+const msg = t => { document.getElementById("msg").textContent = t; };
+async function copy(t, ok){
+  try { await navigator.clipboard.writeText(t); msg(ok); }
+  catch { msg("Copie impossible : sélectionnez le texte et copiez-le."); }
+}
+document.getElementById("copy").onclick = () => copy("Objet : " + subj + "\n\n" + body, "Message copié.");
+document.getElementById("copyTo").onclick = () => copy(to, "Adresse copiée.");
+</script>
+</body>
+</html>
