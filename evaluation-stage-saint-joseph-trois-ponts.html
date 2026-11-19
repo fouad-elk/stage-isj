@@ -251,6 +251,7 @@ if (pEleve) { const e = $("eleve"); e.value = pEleve; e.readOnly = true; e.class
 if (pStage && /^[123]$/.test(pStage)) document.querySelector(`input[name=stage][value="${pStage}"]`).checked = true;
 if (PERIODES[pClasse]) document.querySelector(`input[name=classe][value="${pClasse}"]`).checked = true;
 if (pMag) $("magasin").value = pMag;
+const pMaitre = params.get("maitre"); if (pMaitre) $("maitre").value = pMaitre;
 const val = n => (document.querySelector(`input[name=${n}]:checked`) || {}).value || "";
 const fr = d => d ? d.split("-").reverse().join("/") : "";
 function periode(){ const p = (PERIODES[val("classe")] || {})[val("stage")]; return p ? {debut:p[0], fin:p[1]} : {debut:"", fin:""}; }
