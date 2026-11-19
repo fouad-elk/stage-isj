@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Évaluation du stagiaire – Institut Saint-Joseph Trois-Ponts</title>
+<style>
+  :root{
+    --bg:#f4f6f9; --card:#fff; --ink:#1d2733; --muted:#5b6775; --line:#dde3ea;
+    --brand:#1a7f0c; --brand-2:#2dc314; --logo-grey:#4d4d4d; --ok:#1e7b46; --warn:#b45309; --err:#b42318;
+    --c4:#1e7b46; --c3:#4f8a2b; --c2:#c27c0e; --c1:#b42318; --cx:#6b7280;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif}
+  header{background:#fff;color:var(--logo-grey);padding:20px 20px 22px;border-bottom:5px solid var(--brand-2)}
+  header .wrap{max-width:860px;margin:0 auto}
+  header img.logo{display:block;height:64px;width:auto;max-width:100%;margin:0 0 14px}
+  header small{color:var(--brand);font-weight:700;letter-spacing:.04em;text-transform:uppercase;font-size:12px}
+  header h1{margin:6px 0 6px;font-size:26px;line-height:1.2;color:var(--logo-grey)}
+  header p{margin:0;color:var(--muted);max-width:640px}
+
+  main{max-width:860px;margin:0 auto;padding:20px 16px 120px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px;margin:0 0 18px}
+  .card{border-top:3px solid var(--brand-2)}
+  .card h2{margin:0 0 4px;font-size:19px;color:var(--logo-grey)}
+  .card .sub{margin:0 0 14px;color:var(--muted);font-size:14px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media(max-width:640px){.grid2{grid-template-columns:1fr}}
+  label.f{display:block;font-weight:600;font-size:14px;margin-bottom:6px}
+  input[type=text],input[type=date],textarea{width:100%;padding:10px 12px;border:1px solid #c5ced8;border-radius:8px;font:inherit;background:#fff}
+  input:focus,textarea:focus{outline:2px solid var(--brand-2);outline-offset:1px;border-color:var(--brand-2)}
+  textarea{min-height:90px;resize:vertical}
+  .locked{background:#eef3f8;font-weight:600}
+  .stages{display:flex;gap:8px;flex-wrap:wrap}
+  .pill input{position:absolute;opacity:0;pointer-events:none}
+  .pill span{display:inline-block;padding:9px 14px;border:1px solid #c5ced8;border-radius:999px;cursor:pointer;background:#fff;font-size:14px}
+  .pill input:checked+span{background:var(--brand);border-color:var(--brand);color:#fff}
+  .pill input:focus-visible+span{outline:2px solid var(--brand-2);outline-offset:2px}
+  .legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px;color:var(--muted);margin:0 0 6px}
+  .legend b{display:inline-block;width:22px;text-align:center;border-radius:4px;color:#fff;margin-right:4px}
+  .crit{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;padding:11px 0;border-top:1px solid var(--line)}
+  .crit:first-of-type{border-top:0}
+  .crit .lbl{font-size:15px}
+  .crit.missing .lbl{color:var(--err);font-weight:600}
+  @media(max-width:640px){.crit{grid-template-columns:1fr}}
+  .scale{display:flex;gap:6px}
+  .scale label{position:relative}
+  .scale input{position:absolute;opacity:0;pointer-events:none}
+  .scale span{display:flex;align-items:center;justify-content:center;width:44px;height:40px;border:1px solid #c5ced8;border-radius:8px;cursor:pointer;font-weight:700;background:#fff;color:var(--muted);user-select:none}
+  .scale input:focus-visible+span{outline:2px solid var(--brand-2);outline-offset:2px}
+  .scale input[value="4"]:checked+span{background:var(--c4);border-color:var(--c4);color:#fff}
+  .scale input[value="3"]:checked+span{background:var(--c3);border-color:var(--c3);color:#fff}
+  .scale input[value="2"]:checked+span{background:var(--c2);border-color:var(--c2);color:#fff}
+  .scale input[value="1"]:checked+span{background:var(--c1);border-color:var(--c1);color:#fff}
+  .scale input[value="X"]:checked+span{background:var(--cx);border-color:var(--cx);color:#fff}
+  .bar{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--line);padding:12px 16px;box-shadow:0 -4px 16px rgba(0,0,0,.06)}
+  .bar .wrap{max-width:860px;margin:0 auto;display:flex;gap:14px;align-items:center;justify-content:space-between}
+  .progress{flex:1;font-size:14px;color:var(--muted)}
+  .progress .track{height:6px;background:#e6ebf1;border-radius:6px;margin-top:5px;overflow:hidden}
+  .progress .fill{height:100%;width:0;background:var(--brand-2);transition:width .2s}
+  button{font:inherit;cursor:pointer;border-radius:8px;border:0;padding:12px 20px;font-weight:700}
+  .primary{background:var(--brand);color:#fff}
+  .primary:disabled{opacity:.6;cursor:wait}
+  .secondary{background:#e8eef5;color:var(--brand)}
+  .msg{border-radius:10px;padding:14px 16px;margin:0 0 18px;font-size:15px}
+  .msg.err{background:#fdecea;color:var(--err)}
+  .msg.ok{background:#e7f6ee;color:var(--ok)}
+  .hidden{display:none!important}
+  .done{text-align:center;padding:48px 20px}
+  .done h2{font-size:24px;margin:0 0 8px}
+  pre.code{white-space:pre-wrap;word-break:break-all;background:#f4f6f9;border:1px solid var(--line);border-radius:8px;padding:10px;font-size:12px;max-height:160px;overflow:auto}
+  /* mode enseignant */
+  table.links{width:100%;border-collapse:collapse;font-size:14px}
+  table.links th,table.links td{border-bottom:1px solid var(--line);padding:8px 6px;text-align:left;vertical-align:top}
+  table.links button{padding:6px 10px;font-size:13px;margin:2px 4px 2px 0}
+</style>
+</head>
+<body>
+
+<header><div class="wrap">
+  <img class="logo" src="data:image/png;base64,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" alt="Institut Saint-Joseph Trois-Ponts">
+  <small>Section vente · Stages en entreprise</small>
+  <h1>Évaluation du stagiaire par le maître de stage</h1>
+  <p id="intro">Merci de prendre quelques minutes pour évaluer notre élève. Cochez une appréciation pour chaque critère, puis cliquez sur « Envoyer l'évaluation ». Aucun compte n'est nécessaire.</p>
+</div></header>
+
+<main>
+  <!-- =================== FORMULAIRE MAÎTRE DE STAGE =================== -->
+  <form id="form" novalidate>
+    <div id="error" class="msg err hidden" role="alert"></div>
+
+    <section class="card">
+      <h2>1. Identification</h2>
+      <p class="sub">Stages 1 et 2 : évaluation intermédiaire · Stage 3 : évaluation finale.</p>
+      <div class="grid2">
+        <div>
+          <label class="f" for="eleve">Élève évalué(e)</label>
+          <input type="text" id="eleve" name="eleve" autocomplete="off" required>
+        </div>
+        <div>
+          <span class="f" style="display:block;font-weight:600;font-size:14px;margin-bottom:6px">Numéro du stage</span>
+          <div class="stages" role="radiogroup" aria-label="Numéro du stage">
+            <label class="pill"><input type="radio" name="stage" value="1"><span>Stage 1</span></label>
+            <label class="pill"><input type="radio" name="stage" value="2"><span>Stage 2</span></label>
+            <label class="pill"><input type="radio" name="stage" value="3"><span>Stage 3 (final)</span></label>
+          </div>
+        </div>
+        <div>
+          <label class="f" for="magasin">Magasin / entreprise</label>
+          <input type="text" id="magasin" name="magasin" required>
+        </div>
+        <div>
+          <label class="f" for="maitre">Nom du maître de stage</label>
+          <input type="text" id="maitre" name="maitre" required>
+        </div>
+        <div>
+          <label class="f" for="debut">Début du stage</label>
+          <input type="date" id="debut" name="debut">
+        </div>
+        <div>
+          <label class="f" for="fin">Fin du stage</label>
+          <input type="date" id="fin" name="fin">
+        </div>
+      </div>
+    </section>
+
+    <div id="blocks"></div>
+
+    <section class="card">
+      <h2>7. Avis du maître de stage</h2>
+      <p class="sub">Facultatif, mais très utile pour le bulletin et la suite de la formation.</p>
+      <label class="f" for="forts">Points forts de l'élève</label>
+      <textarea id="forts" name="forts"></textarea>
+      <label class="f" for="ameliorer" style="margin-top:14px">Points encore à travailler, à améliorer</label>
+      <textarea id="ameliorer" name="ameliorer"></textarea>
+      <label class="f" for="avis" style="margin-top:14px">Avis général / remarques</label>
+      <textarea id="avis" name="avis"></textarea>
+    </section>
+
+    <!-- piège à robots : laissé vide par les humains -->
+    <input type="text" name="_honey" id="honey" tabindex="-1" autocomplete="off" style="position:absolute;left:-9999px" aria-hidden="true">
+  </form>
+
+  <!-- =================== CONFIRMATION =================== -->
+  <section id="done" class="card done hidden">
+    <h2>Merci, l'évaluation a bien été envoyée.</h2>
+    <p>Elle a été transmise à l'enseignant responsable des stages. Vous pouvez fermer cette page.</p>
+  </section>
+
+  <!-- =================== SECOURS SI L'ENVOI ÉCHOUE =================== -->
+  <section id="fallback" class="card hidden">
+    <h2>L'envoi automatique n'a pas fonctionné</h2>
+    <p>Rien n'est perdu. Cliquez sur le bouton ci-dessous : votre messagerie s'ouvre avec l'évaluation déjà rédigée, il suffit d'envoyer le mail.</p>
+    <p><a id="mailtoBtn" class="primary" style="display:inline-block;padding:12px 20px;border-radius:8px;color:#fff;text-decoration:none;font-weight:700" href="#">Envoyer par e-mail</a>
+       <button type="button" class="secondary" id="copyBtn">Copier l'évaluation</button></p>
+    <p class="sub">Si le bouton n'ouvre rien, cliquez sur « Copier l'évaluation » et collez-la dans un e-mail à <b id="mailAddr"></b>.</p>
+    <pre class="code" id="codeBox"></pre>
+  </section>
+
+  <!-- =================== MODE ENSEIGNANT (?prof) =================== -->
+  <section id="prof" class="card hidden">
+    <h2>Mode enseignant : générer les liens pré-remplis</h2>
+    <p class="sub">Collez vos élèves, un par ligne, au format <b>CLASSE;Nom Prénom</b> (ex. <code>5VENDEUR;Dupont Marie</code>). La liste reste dans votre navigateur : rien n'est enregistré ni envoyé.</p>
+    <textarea id="profList" style="min-height:140px" placeholder="5VENDEUR;Dupont Marie&#10;6VENDEUR;Martin Lucas"></textarea>
+    <p><button type="button" class="primary" id="genBtn">Générer les liens</button></p>
+    <div id="profOut"></div>
+  </section>
+</main>
+
+<div class="bar" id="bar"><div class="wrap">
+  <div class="progress"><span id="progTxt">0 / 42 critères cotés</span><div class="track"><div class="fill" id="progFill"></div></div></div>
+  <button type="button" class="primary" id="sendBtn">Envoyer l'évaluation</button>
+</div></div>
+
+<script>
+/* =====================================================================
+   CONFIGURATION – seule ligne à adapter.
+   Après la 1re évaluation, FormSubmit vous envoie un e-mail d'activation.
+   Il vous propose ensuite un alias aléatoire : remplacez l'adresse
+   ci-dessous par cet alias pour ne plus afficher votre e-mail dans le code.
+   ===================================================================== */
+const DESTINATAIRE = "fouad.elkadouri140@gmail.com";
+const ECOLE = "Institut Saint-Joseph Trois-Ponts";
+
+const BAREME = [
+  ["4","Très bien"],["3","Bien, rien à signaler"],["2","Laisse parfois à désirer"],
+  ["1","Nettement insuffisant"],["X","Non rencontré pendant le stage"]
+];
+const BLOCS = [
+  {k:"T", t:"2. Attitude par rapport au travail", s:"Exécuter des tâches", c:[
+    "Qualité du travail fourni","Adresse – rapidité","Organisation du travail : être prévoyant(e), ordonné(e)",
+    "Initiative : résoudre des difficultés imprévues – aller au travail","Attitude devant l'échec : esprit de « revanche » ou défaitisme",
+    "Intérêt porté au travail","Capacité à travailler seul(e), sans accompagnement",
+    "Exécution du travail commandé, respect des consignes","Ténacité : aller jusqu'au bout du travail entrepris"]},
+  {k:"A", t:"3. Attitude par rapport à l'apprentissage", s:"Acquérir des connaissances", c:[
+    "Attention : sens de l'observation","Motivation pour cette profession : demande conseil",
+    "Volonté de progresser, d'améliorer ses connaissances","Curiosité : cherche à comprendre",
+    "Compréhension, vivacité d'esprit","Capacité d'écoute","Mémorisation facile : retenir les nouvelles connaissances",
+    "Prise de notes spontanées, tenue à jour du carnet de bord","Souci de la bonne compréhension : redemander quand on n'a pas compris"]},
+  {k:"C", t:"4. Attitude par rapport à la communication", s:"Échanger", c:[
+    "Tact – Politesse","Vocabulaire riche, phrases construites","Prise de contact, formulation des demandes, pose des questions",
+    "Respect du secret professionnel","Expression aisée sans problème – langage correct",
+    "Sûreté des gestes : mouvement, poignée de mains…","Utilisation aisée du téléphone",
+    "Ouverture d'esprit, communication facile","Communication écrite correcte"]},
+  {k:"I", t:"5. Intégration dans l'entreprise", s:"", c:[
+    "Ponctualité : respect des horaires","Tenue vestimentaire correcte, adaptée à la profession",
+    "Sécurité – hygiène : respect des consignes","Intérêt pour l'entreprise : demande de visite, questions à son propos…",
+    "Recherche des infos sur l'objet de l'entreprise (ce qu'elle vend, achète, clients, fournisseurs…)",
+    "Intégration à l'équipe","Communication avec les membres de l'équipe",
+    "Comportement, relation avec les autres (membres de l'équipe ou non)","Assiduité : retards et absences justifiés"]},
+  {k:"V", t:"6. Objectifs professionnels : la vente", s:"", c:[
+    "Connaissances des produits","Accueillir le client","Conseiller le client","Vente complète au comptoir",
+    "Fidéliser le client","Passer une commande et répondre au téléphone"]}
+];
+const TOTAL = BLOCS.reduce((n,b)=>n+b.c.length,0);
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"']/g, m => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
+const params = new URLSearchParams(location.search);
+
+/* ---------- construction des grilles ---------- */
+(function build(){
+  const legend = '<div class="legend">' + BAREME.map(([v,l]) =>
+    `<span><b style="background:var(--c${v==="X"?"x":v})">${v}</b>${l}</span>`).join("") + '</div>';
+  $("blocks").innerHTML = BLOCS.map(b => `
+    <section class="card">
+      <h2>${b.t}</h2>${b.s?`<p class="sub">${b.s}</p>`:""}
+      ${legend}
+      ${b.c.map((c,i) => {
+        const name = b.k + (i+1);
+        return `<div class="crit" id="row-${name}">
+          <div class="lbl" id="lbl-${name}">${esc(c)}</div>
+          <div class="scale" role="radiogroup" aria-labelledby="lbl-${name}">
+            ${BAREME.map(([v,l]) => `<label title="${esc(l)}"><input type="radio" name="${name}" value="${v}" aria-label="${v} – ${esc(l)}"><span>${v}</span></label>`).join("")}
+          </div></div>`;}).join("")}
+    </section>`).join("");
+})();
+
+/* ---------- pré-remplissage par lien ---------- */
+const pEleve = params.get("eleve"), pStage = params.get("stage"), pClasse = params.get("classe") || "";
+if (pEleve) { const e = $("eleve"); e.value = pEleve; e.readOnly = true; e.classList.add("locked"); }
+if (pStage && /^[123]$/.test(pStage)) document.querySelector(`input[name=stage][value="${pStage}"]`).checked = true;
+
+/* ---------- progression ---------- */
+function progress(){
+  const n = BLOCS.reduce((s,b)=>s+b.c.filter((_,i)=>document.querySelector(`input[name=${b.k}${i+1}]:checked`)).length,0);
+  $("progTxt").textContent = `${n} / ${TOTAL} critères cotés`;
+  $("progFill").style.width = (100*n/TOTAL)+"%";
+}
+document.addEventListener("change", e => {
+  if (e.target.matches(".scale input")) { e.target.closest(".crit").classList.remove("missing"); progress(); }
+});
+progress();
+
+/* ---------- collecte + validation ---------- */
+function collect(){
+  const missing = [];
+  const notes = {};
+  BLOCS.forEach(b => {
+    notes[b.k] = b.c.map((_,i) => {
+      const el = document.querySelector(`input[name=${b.k}${i+1}]:checked`);
+      if (!el) missing.push(b.k+(i+1));
+      return el ? el.value : "";
+    });
+  });
+  const stageEl = document.querySelector("input[name=stage]:checked");
+  const d = {
+    v:1,
+    eleve:$("eleve").value.trim(), classe:pClasse, stage:stageEl?stageEl.value:"",
+    magasin:$("magasin").value.trim(), maitre:$("maitre").value.trim(),
+    debut:$("debut").value, fin:$("fin").value,
+    notes, forts:$("forts").value.trim(), ameliorer:$("ameliorer").value.trim(), avis:$("avis").value.trim(),
+    envoye:new Date().toISOString()
+  };
+  const errs = [];
+  if (!d.eleve) errs.push("le nom de l'élève");
+  if (!d.stage) errs.push("le numéro du stage");
+  if (!d.magasin) errs.push("le magasin / l'entreprise");
+  if (!d.maitre) errs.push("le nom du maître de stage");
+  if (missing.length) errs.push(`${missing.length} critère(s) non coté(s), en rouge ci-dessous`);
+  return {d, errs, missing};
+}
+
+/* ---------- texte lisible + code machine ---------- */
+function asText(d){
+  const lab = Object.fromEntries(BAREME);
+  let t = `ÉVALUATION DE STAGE – ${ECOLE}\n\nÉlève : ${d.eleve}${d.classe?" ("+d.classe+")":""}\nStage n° : ${d.stage}${d.stage==="3"?" (final)":" (intermédiaire)"}\n` +
+          `Magasin : ${d.magasin}\nMaître de stage : ${d.maitre}\nPériode : ${d.debut||"?"} au ${d.fin||"?"}\n`;
+  BLOCS.forEach(b => {
+    t += `\n${b.t.replace(/^\d+\.\s*/,"").toUpperCase()}\n`;
+    b.c.forEach((c,i) => { const v = d.notes[b.k][i]; t += `- ${c} : ${v} (${lab[v]||""})\n`; });
+  });
+  t += `\nPoints forts : ${d.forts||"-"}\nPoints à améliorer : ${d.ameliorer||"-"}\nAvis général : ${d.avis||"-"}\n`;
+  return t;
+}
+const codeOf = d => "EVALSTAGE-CODE-DEBUT\n" + JSON.stringify(d) + "\nEVALSTAGE-CODE-FIN";
+const subjectOf = d => `EVAL-STAGE | ${d.eleve} | stage ${d.stage}`;
+
+/* ---------- envoi ---------- */
+$("sendBtn").addEventListener("click", async () => {
+  const {d, errs, missing} = collect();
+  document.querySelectorAll(".crit.missing").forEach(x => x.classList.remove("missing"));
+  if (errs.length){
+    missing.forEach(n => $("row-"+n).classList.add("missing"));
+    $("error").innerHTML = "Il manque encore : " + errs.map(esc).join(", ") + ".";
+    $("error").classList.remove("hidden");
+    (missing.length ? $("row-"+missing[0]) : $("error")).scrollIntoView({behavior:"smooth", block:"center"});
+    return;
+  }
+  $("error").classList.add("hidden");
+  if ($("honey").value) return; // robot
+  const btn = $("sendBtn"); btn.disabled = true; btn.textContent = "Envoi en cours…";
+  const lab = Object.fromEntries(BAREME);
+  const body = {
+    _subject: subjectOf(d), _template: "box", _captcha: "false",
+    "Élève": d.eleve, "Classe": d.classe || "-", "Stage n°": d.stage,
+    "Magasin": d.magasin, "Maître de stage": d.maitre, "Période": `${d.debut||"?"} → ${d.fin||"?"}`,
+  };
+  BLOCS.forEach(b => b.c.forEach((c,i) => { const v = d.notes[b.k][i]; body[`${b.k}${i+1} ${c}`] = `${v} – ${lab[v]}`; }));
+  body["Points forts"] = d.forts || "-"; body["Points à améliorer"] = d.ameliorer || "-"; body["Avis général"] = d.avis || "-";
+  body["CODE (ne pas modifier)"] = codeOf(d);
+  try {
+    const r = await fetch("https://formsubmit.co/ajax/" + encodeURIComponent(DESTINATAIRE), {
+      method:"POST", headers:{"Content-Type":"application/json","Accept":"application/json"}, body:JSON.stringify(body)
+    });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok || String(j.success) !== "true") throw new Error(j.message || ("HTTP " + r.status));
+    showDone();
+  } catch (e) {
+    console.error(e); showFallback(d);
+  } finally { btn.disabled = false; btn.textContent = "Envoyer l'évaluation"; }
+});
+
+function showDone(){
+  $("form").classList.add("hidden"); $("bar").classList.add("hidden");
+  $("done").classList.remove("hidden"); window.scrollTo({top:0, behavior:"smooth"});
+}
+function showFallback(d){
+  const txt = asText(d) + "\n\n" + codeOf(d);
+  $("codeBox").textContent = txt;
+  $("mailAddr").textContent = DESTINATAIRE;
+  $("mailtoBtn").href = "mailto:" + DESTINATAIRE + "?subject=" + encodeURIComponent(subjectOf(d)) + "&body=" + encodeURIComponent(txt);
+  $("copyBtn").onclick = async () => {
+    try { await navigator.clipboard.writeText(txt); $("copyBtn").textContent = "Copié ✓"; }
+    catch { const r = document.createRange(); r.selectNodeContents($("codeBox")); getSelection().removeAllRanges(); getSelection().addRange(r); }
+  };
+  $("fallback").classList.remove("hidden"); $("fallback").scrollIntoView({behavior:"smooth"});
+}
+
+/* ---------- mode enseignant ---------- */
+if (params.has("prof")) {
+  $("form").classList.add("hidden"); $("bar").classList.add("hidden"); $("prof").classList.remove("hidden");
+  $("intro").textContent = "Page réservée à l'enseignant : génération des liens à envoyer aux maîtres de stage.";
+  try { $("profList").value = localStorage.getItem("evalstage-eleves") || ""; } catch {}
+  $("genBtn").onclick = () => {
+    const raw = $("profList").value; try { localStorage.setItem("evalstage-eleves", raw); } catch {}
+    const base = location.origin + location.pathname;
+    const rows = raw.split(/\r?\n/).map(l => l.trim()).filter(Boolean).map(l => {
+      const [a,b] = l.includes(";") ? l.split(";") : ["", l];
+      return {classe:a.trim(), eleve:(b||"").trim()};
+    }).filter(r => r.eleve);
+    if (!rows.length) { $("profOut").innerHTML = '<p class="msg err">Aucun élève reconnu.</p>'; return; }
+    const link = (r,s) => base + "?" + new URLSearchParams({eleve:r.eleve, classe:r.classe, stage:s}).toString();
+    $("profOut").innerHTML = `<table class="links"><thead><tr><th>Élève</th><th>Liens à envoyer</th></tr></thead><tbody>` +
+      rows.map(r => `<tr><td><b>${esc(r.eleve)}</b><br><small>${esc(r.classe)}</small></td><td>` +
+        ["1","2","3"].map(s => `<button type="button" class="secondary" data-l="${esc(link(r,s))}">Copier lien stage ${s}</button>`).join("") +
+        `</td></tr>`).join("") + `</tbody></table>`;
+    $("profOut").querySelectorAll("button[data-l]").forEach(b => b.onclick = async () => {
+      try { await navigator.clipboard.writeText(b.dataset.l); b.textContent = "Copié ✓"; }
+      catch { prompt("Copiez ce lien :", b.dataset.l); }
+    });
+  };
+}
+</script>
+</body>
+</html>
