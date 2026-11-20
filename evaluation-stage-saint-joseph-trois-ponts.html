@@ -226,6 +226,14 @@ const TOTAL = BLOCS.reduce((n,b)=>n+b.c.length,0);
 const $ = id => document.getElementById(id);
 const esc = s => String(s).replace(/[&<>"']/g, m => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
 const params = new URLSearchParams(location.search);
+/* Lien court : ?k=<base64url d'un JSON {e,c,s,m,mt}> (plus fiable dans Outlook que les longs paramètres) */
+if (params.has("k")) {
+  try {
+    const b = params.get("k").replace(/-/g, "+").replace(/_/g, "/");
+    const o = JSON.parse(decodeURIComponent(escape(atob(b + "===".slice((b.length + 3) % 4)))));
+    [["e","eleve"],["c","classe"],["s","stage"],["m","magasin"],["mt","maitre"]].forEach(([k,n]) => { if (o[k] != null && o[k] !== "") params.set(n, String(o[k])); });
+  } catch (e) { console.error("Lien invalide", e); }
+}
 
 /* ---------- construction des grilles ---------- */
 (function build(){
