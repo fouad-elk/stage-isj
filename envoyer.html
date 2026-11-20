@@ -24,12 +24,13 @@
 <main>
   <div class="card">
     <h1>Envoyer le lien d'évaluation</h1>
-    <p class="sub">Votre messagerie s'ouvre automatiquement. Si rien ne s'ouvre, touchez « Ouvrir dans ma messagerie ».</p>
+    <p class="sub">1. Touchez le bouton vert : le message est copié et votre messagerie s'ouvre.<br>2. Dans le mail, appuyez longuement dans la zone de texte puis <b>Coller</b>.<br>3. Envoyez. Le lien sera cliquable partout, y compris dans Outlook.</p>
     <span class="f">À</span><div class="v" id="to"></div>
     <span class="f">Objet</span><div class="v" id="subj"></div>
     <span class="f">Message</span><div class="v" id="body"></div>
     <div class="btns">
-      <a class="btn primary" id="open" href="#">Ouvrir dans ma messagerie</a>
+      <a class="btn primary" id="open" href="#">Copier le message et ouvrir ma messagerie</a>
+      <a class="btn secondary" id="openPlain" href="#">Ouvrir avec le message déjà écrit (lien simple)</a>
       <button type="button" class="secondary" id="copy">Copier le message</button>
       <button type="button" class="secondary" id="copyTo">Copier l'adresse</button>
       <div class="ok" id="msg" role="status"></div>
@@ -43,10 +44,29 @@ const to = p.get("to") || "", subj = p.get("subject") || "", body = p.get("body"
 document.getElementById("to").textContent = to || "(aucune adresse : à compléter dans la messagerie)";
 document.getElementById("subj").textContent = subj;
 document.getElementById("body").textContent = body;
-const mailto = "mailto:" + encodeURIComponent(to).replace(/%40/g, "@") + "?subject=" + encodeURIComponent(subj) + "&body=" + encodeURIComponent(body);
-document.getElementById("open").href = mailto;
-/* Ouverture automatique de la messagerie dès l'arrivée sur la page (la page reste en secours si le téléphone la bloque). */
-if (to || subj) setTimeout(() => { location.href = mailto; }, 150);
+const enc = v => encodeURIComponent(v);
+const mailtoTo = "mailto:" + enc(to).replace(/%40/g, "@");
+const mailtoPlain = mailtoTo + "?subject=" + enc(subj) + "&body=" + enc(body);
+const mailtoNoBody = mailtoTo + "?subject=" + enc(subj);
+document.getElementById("openPlain").href = mailtoPlain;
+const esc = t => t.replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const html = '<div style="font-family:Arial,sans-serif;font-size:14px">' + body.split(/\n{2,}/).map(par =>
+  "<p>" + esc(par).replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1">$1</a>').replace(/\n/g, "<br>") + "</p>").join("") + "</div>";
+document.getElementById("open").addEventListener("click", async ev => {
+  ev.preventDefault();
+  let ok = false;
+  try {
+    if (window.ClipboardItem && navigator.clipboard && navigator.clipboard.write) {
+      await navigator.clipboard.write([new ClipboardItem({
+        "text/html": new Blob([html], {type: "text/html"}),
+        "text/plain": new Blob([body], {type: "text/plain"})
+      })]);
+      ok = true;
+    }
+  } catch (e) { console.error(e); }
+  msg(ok ? "Message copié : collez-le dans le mail qui s'ouvre." : "Copie impossible : le mail s'ouvre avec le texte déjà écrit.");
+  setTimeout(() => { location.href = ok ? mailtoNoBody : mailtoPlain; }, 300);
+});
 const msg = t => { document.getElementById("msg").textContent = t; };
 async function copy(t, ok){
   try { await navigator.clipboard.writeText(t); msg(ok); }
